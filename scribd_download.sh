@@ -4,9 +4,10 @@
 # ImageMagick and Phantomjs must be installed
 # Doc : https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#wiki-webpage-viewportSize
 
+# Some letters are missing in this page :
+# url="http://fr.scribd.com/doc/48491291/partition"
 
 url="http://fr.scribd.com/doc/16920981/Secondhand-Serenade-Your-Call-piano"
-url="http://fr.scribd.com/doc/48491291/partition"
 zoom_precision=3
 
 rm -r .tmp
