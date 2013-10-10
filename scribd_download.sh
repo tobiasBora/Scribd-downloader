@@ -1,22 +1,32 @@
-#!/bin/bash
+#!/bin/bash -e
 
-# This script download and convert a document from scribd.com
+# This script download and convert a document from scribd.com into pdf
 # ImageMagick and Phantomjs must be installed
 # Doc : https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#wiki-webpage-viewportSize
 
-# Some letters are missing in this page :
+# Working examples :
+# http://fr.scribd.com/doc/16920981/Secondhand-Serenade-Your-Call-piano"
+# http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
+
+
+# Bugs: Letters are missing in this page :
 # url="http://fr.scribd.com/doc/48491291/partition"
 
-url="http://fr.scribd.com/doc/16920981/Secondhand-Serenade-Your-Call-piano"
-zoom_precision=3
+if [ -z "$1" ]
+then
+    echo "scribd_download.sh <url>"
+    exit 1
+fi
+url="$1"
+zoom_precision=2
 
-rm -r .tmp
+rm -rf .tmp
 mkdir .tmp
 cd .tmp
 
 # Get the number of pages
 echo "Getting informations..."
-echo -n "  Number of pages..."
+echo -n "  Number of pages... "
 
 echo "var page = require('webpage').create();
 url = \"$url\"
@@ -25,8 +35,14 @@ page.open(url, function () {
     phantom.exit();
 });" > phantom_nb_pages.js
 
-nb_pages=`phantomjs --load-images=no phantom_nb_pages.js > page.html && cat page.html | egrep -o '<span class="max_page">[0-9]+</span>' | cut -d\>  -f2 | cut -d\< -f1`
-echo $nb_pages
+# Update of Scribd
+nb_pages=`phantomjs --load-images=no phantom_nb_pages.js > page.html && cat page.html | egrep -o 'of <span class="total_value">[0-9]+</span>' | cut -d\> -f2 | cut -d\< -f1`
+if [ -z "$nb_pages" ]
+then
+    echo "I can't find the number of pages... Please, how many pages are there in the file ?"
+    read nb_pages
+fi
+echo "$nb_pages"
 
 page_name=`cat page.html | egrep -o "<title>.*</title>" | sed -E 's/<title>(.*)<\/title>/\1/' | sed -e 's/ /_/g'`
 echo "  Title... $page_name"
@@ -39,88 +55,35 @@ echo "Removing useless parts..."
 sed -i -e "s/</\\n</g" page.html
 sed -i -e "s/>[^\\n]/>\\n/g" page.html
 
-# This part must be improve because it is very long...
 function remove_node {
-     # $1 is the node regexp string
-     # $2 is the file
+    # $1 is the node regexp string
+    # $2 is the file
     node_regex=$1
     filename=$2
-    state=0
-    nb_line=1
-    while read line
-    do
- 	if [ $state = 0 ]
- 	then
- 	    # On n'a encore rien trouvé
- 	    if [ "`echo \"$line\" | grep -o -P \"$node_regex\"`" != "" ]
- 	    then
- 		sed -i "${nb_line}d" $filename
- 		nb_line=$(( $nb_line - 1 ))
- 		state=1
- 		i=1
- 	    fi
- 	elif [ $state = 1 ]
- 	then
- 	    # On est dans la partie à supprimer
- 	    sed -i "${nb_line}d" "$filename"
- 	    # On évite de sauter des lignes
- 	    nb_line=$(( $nb_line - 1 ))	    
- 	    if [ "`echo \"$line\" | grep -o '</div>'`" != "" ]
- 	    then
- 		i=$(( $i - 1 ))
- 	    elif [ "`echo \"$line\" | grep -o '<div'`" != "" ]
- 	    then
- 		i=$(( $i + 1 ))
- 	    fi
-
- 	    if [ $i == 0 ]
- 	    then
- 		state=0
- 	    fi
- 	fi
- 	nb_line=$(( $nb_line + 1 ))
-    done < $filename
+    commande="{if(/${node_regex}/){i=1}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
+    awk "$commande" "$filename" > tmp
+    mv tmp "$filename"
+    
 }
 
-# Version 2 => not better
-# function remove_node {
-#     # $1 is the node regexp string
-#     # $2 is the file
-#     node_regex=$1
-#     filename=$2
-#     state=0
-#     nb_line=1
-#     echo "" > page_out.html
-#     while read line
-#     do
-# 	if [ $state = 0 ]
-# 	then
-# 	    # On n'a encore rien trouvé
-# 	    if [ "`echo \"$line\" | grep -o -P \"$node_regex\"`" != "" ]
-# 	    then
-# 		state=1
-# 		i=1
-# 	    else
-# 		echo "$line" >> page_out.html
-# 	    fi
-# 	elif [ $state = 1 ]
-# 	then
-# 	    if [ "`echo \"$line\" | grep -o '</div>'`" != "" ]
-# 	    then
-# 		i=$(( $i - 1 ))
-# 	    elif [ "`echo \"$line\" | grep -o '<div'`" != "" ]
-# 	    then
-# 		i=$(( $i + 1 ))
-# 	    fi
+function remove_errors {
+    awk '/</{i++}i' "$1" > tmp
+    mv tmp "$1"
+}
 
-# 	    if [ $i == 0 ]
-# 	    then
-# 		state=0
-# 	    fi
-# 	fi
-#     done < $filename
-#     mv page_out.html "$filename"
-# }
+# We remove all html elements which are useless (menus...)
+echo -n "-"
+remove_errors "page.html"
+echo -n "-"
+remove_node '<div.*id="global_header"' "page.html"
+echo -n "-"
+remove_node '<div class="header_spacer"' "page.html"
+echo -n "-"
+remove_node '<div.*id="doc_info"' "page.html"
+echo -n "-"
+remove_node '<div.*class="toolbar_spacer"' "page.html"
+echo -n "-"
+remove_node '<div.*between_page_ads_1' "page.html"
 
 
 echo -n "-"
@@ -160,12 +123,21 @@ echo -e "\nDone"
 # We download the page with images
 echo -n "Downloading page..."
 
+#### The page size is founded automatiquely
+width_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 1')"
+height_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 2')"
+space_no_zoom=100
+
+width=$(( $width_no_zoom * $zoom_precision ))
+height=$(( $height_no_zoom * $zoom_precision ))
+space=$(( $space_no_zoom * $zoom_precision ))
+
 echo "var page = require('webpage').create();
 url = 'page.html';
 nb_pages = $nb_pages;
 zoom = $zoom_precision;
-width = zoom*691
-height = zoom*(768+920*nb_pages);
+width = $width
+height = (768+($height+$space)*nb_pages);
 page.viewportSize = { width: width, height: height };
 page.zoomFactor = zoom;
 
@@ -183,9 +155,6 @@ echo "Done"
 ### Treatment of the picture
 # Separate pages
 echo -n "Treatment... "
-width=$(( 691 * $zoom_precision ))
-height=$(( 895 * $zoom_precision ))
-space=$(( 9 * $zoom_precision ))
 
 for i in `seq 0 $(( $nb_pages - 1))`
 do
@@ -202,34 +171,50 @@ echo "Done"
 echo "The outputfile is ${page_name}.pdf"
 
 cd ..
-# rm -r .tmp
+rm -rf .tmp
 
-# while read line
-# do
-# 	if [ $state == 0 ]
-# 	then
-# 	    # On n'a encore rien trouvé
-# 	    if [ echo "$line" | grep -o -P '$node_regex' != ""]
-# 	    then
-# 		state=1
-# 		i=1
-# 	    else
-# 		echo "$line"
-# 	    fi
-# 	elif [ $state == 1 ]
-# 	then
-# 	    # On n'affiche rien
-# 	    if [ echo "$line" | grep -o '</div>' != "" ]
-# 	    then
-# 		i= $i - 1
-# 	    elif [ echo "$line" | grep -o '<div' != "" ]
-# 	    then
-# 		i= $i + 1
-# 	    fi
 
-# 	    if [$i == 0]
-# 	    then
-# 		state=0
-# 	    fi
-# 	fi
-# done < filename
+
+###### Bin #####
+# This part must be improve because it is very long... DONE !
+# function remove_node {
+#      # $1 is the node regexp string
+#      # $2 is the file
+#     node_regex=$1
+#     filename=$2
+#     state=0
+#     nb_line=1
+#     while read line
+#     do
+#  	if [ $state = 0 ]
+#  	then
+#  	    # On n'a encore rien trouvé
+#  	    if [ "`echo \"$line\" | grep -o -P \"$node_regex\"`" != "" ]
+#  	    then
+#  		sed -i "${nb_line}d" $filename
+#  		nb_line=$(( $nb_line - 1 ))
+#  		state=1
+#  		i=1
+#  	    fi
+#  	elif [ $state = 1 ]
+#  	then
+#  	    # On est dans la partie à supprimer
+#  	    sed -i "${nb_line}d" "$filename"
+#  	    # On évite de sauter des lignes
+#  	    nb_line=$(( $nb_line - 1 ))	    
+#  	    if [ "`echo \"$line\" | grep -o '</div>'`" != "" ]
+#  	    then
+#  		i=$(( $i - 1 ))
+#  	    elif [ "`echo \"$line\" | grep -o '<div'`" != "" ]
+#  	    then
+#  		i=$(( $i + 1 ))
+#  	    fi
+
+#  	    if [ $i == 0 ]
+#  	    then
+#  		state=0
+#  	    fi
+#  	fi
+#  	nb_line=$(( $nb_line + 1 ))
+#     done < $filename
+# }
