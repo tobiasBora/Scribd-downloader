@@ -1,0 +1,12 @@
+* Scribd-downloader
+
+A little shell script to download a pdf file from a scribd document. This script isn't perfect, but it's enough for me.
+
+To use it, just run :
+: $ ./scribd_download.sh <your url>
+
+Example :
+: $ ./scribd_download.sh http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
+
+The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
+

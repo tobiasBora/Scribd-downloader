@@ -71,6 +71,9 @@ function remove_errors {
     mv tmp "$1"
 }
 
+# We remove the margin on the left of the main block
+sed -i -e 's/id="doc_container"/id="doc_container" style="margin-left : 0px;"/g' page.html
+
 # We remove all html elements which are useless (menus...)
 echo -n "-"
 remove_errors "page.html"
@@ -84,53 +87,57 @@ echo -n "-"
 remove_node '<div.*class="toolbar_spacer"' "page.html"
 echo -n "-"
 remove_node '<div.*between_page_ads_1' "page.html"
-
-
-echo -n "-"
-remove_node '<div class="global_header"' "page.html"
-echo -n "-"
-remove_node '<div id="font_preload_bed"' "page.html"
-echo -n "-"
-remove_node '<div class="global_footer"' "page.html"
-echo -n "-"
-remove_node '<div id="lightboxes"' "page.html"
-echo -n "-"
-remove_node '<div id="fb-root"' "page.html"
-echo -n "-"
-remove_node '<div id="overlay"' "page.html"
-echo -n "-"
-remove_node '<div class="below_document"' "page.html"
 echo -n "-"
 remove_node 'id="leaderboard_ad_main">' "page.html"
-echo -n "-"
-remove_node 'id="top_language_bar">' "page.html"
-echo -n "-"
-remove_node '<div id="upgrade_message"' "page.html"
-echo -n "-"
-remove_node 'id="flashes_placeholder"' "page.html"
-echo -n "-"
-remove_node 'class="sticky_bar"' "page.html"
-echo -n "-"
-remove_node 'id="sidebar"' "page.html"
-echo -n "-"
-remove_node 'id="view=mode_popup"' "page.html"
-echo -n "-"
-remove_node '<div class="b_' "page.html"
+
+# The Scribt skeleton changes often, the following things are useless now.
+# echo -n "-"
+# remove_node '<div class="global_header"' "page.html"
+# echo -n "-"
+# remove_node '<div id="font_preload_bed"' "page.html"
+# echo -n "-"
+# remove_node '<div class="global_footer"' "page.html"
+# echo -n "-"
+# remove_node '<div id="lightboxes"' "page.html"
+# echo -n "-"
+# remove_node '<div id="fb-root"' "page.html"
+# echo -n "-"
+# remove_node '<div id="overlay"' "page.html"
+# echo -n "-"
+# remove_node '<div class="below_document"' "page.html"
+# echo -n "-"
+# remove_node 'id="top_language_bar">' "page.html"
+# echo -n "-"
+# remove_node '<div id="upgrade_message"' "page.html"
+# echo -n "-"
+# remove_node 'id="flashes_placeholder"' "page.html"
+# echo -n "-"
+# remove_node 'class="sticky_bar"' "page.html"
+# echo -n "-"
+# remove_node 'id="sidebar"' "page.html"
+# echo -n "-"
+# remove_node 'id="view=mode_popup"' "page.html"
+# echo -n "-"
+# remove_node '<div class="b_' "page.html"
 
 echo -e "\nDone"
 
 
 # We download the page with images
-echo -n "Downloading page..."
+echo "Downloading page..."
 
 #### The page size is founded automatiquely
 width_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 1')"
 height_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 2')"
 space_no_zoom=100
 
-width=$(( $width_no_zoom * $zoom_precision ))
-height=$(( $height_no_zoom * $zoom_precision ))
-space=$(( $space_no_zoom * $zoom_precision ))
+echo "Width : $width_no_zoom px"
+echo "Height : $height_no_zoom px"
+echo "If you have an error here, if may have a problem to detect the width."
+
+width=$(($width_no_zoom * $zoom_precision))
+height=$(($height_no_zoom * $zoom_precision))
+space=$(($space_no_zoom * $zoom_precision))
 
 echo "var page = require('webpage').create();
 url = 'page.html';
