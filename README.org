@@ -10,6 +10,4 @@ Example :
 
 The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
 
-#+CAPTION: This is for stats (with githalytics.com)
-#+NAME:   fig:Stats
-[[https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19]]
+#+html: <img src="https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19" />
