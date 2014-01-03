@@ -10,6 +10,6 @@ Example :
 
 The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
 
-#+CAPTION: This is the caption for the next figure link (or table)
-#+NAME:   fig:SED-HR4049
-[[http://static6.businessinsider.com/image/51c3212a6bb3f79c2000000f/this-space-picture-changes-our-understanding-of-how-black-holes-form.jpg]]
+#+CAPTION: This is for stats (with githalytics.com)
+#+NAME:   fig:Stats
+[[https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19]]
