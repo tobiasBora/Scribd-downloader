@@ -12,4 +12,4 @@ The Scribd structure often changes, so if you have any problem, please contact m
 
 #+CAPTION: This is the caption for the next figure link (or table)
 #+NAME:   fig:SED-HR4049
-[[https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQqfUyfu040mQJ30scOf0q555sKW4q2vr3gXi-Nbx_whri2FdTh]]
+[[file:https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQqfUyfu040mQJ30scOf0q555sKW4q2vr3gXi-Nbx_whri2FdTh]]
