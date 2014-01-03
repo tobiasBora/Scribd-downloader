@@ -133,7 +133,7 @@ space_no_zoom=100
 
 echo "Width : $width_no_zoom px"
 echo "Height : $height_no_zoom px"
-echo "If you have an error here, if may have a problem to detect the width."
+echo "If you have an error here, it may has a problem to detect the width."
 
 width=$(($width_no_zoom * $zoom_precision))
 height=$(($height_no_zoom * $zoom_precision))
