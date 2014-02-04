@@ -103,7 +103,17 @@ remove_node '<div.*between_page_ads_1' "page.html"
 echo -n "-"
 remove_node 'id="leaderboard_ad_main">' "page.html"
 echo -n "-"
+# Remove the space between pages
 remove_node 'class="page_missing_explanation' "page.html"
+echo -n "-"
+remove_node '<div id="between_page_ads' "page.html"
+echo -n "-"
+remove_node '<div class="b_..">' "page.html"
+echo -n "-"
+remove_node '<div class="buy_doc_bar' "page.html"
+
+sed -i 's/<div class="outer_page/<div style="margin: 0px;" class="outer_page/g' page.html
+
 
 # The Scribt skeleton changes often, the following things are useless now.
 # echo -n "-"
@@ -165,7 +175,8 @@ else
     width_no_zoom="$3"
     height_no_zoom="$4"
 fi
-space_no_zoom=100
+# space_no_zoom=100
+space_no_zoom=0
 echo "Width : $width_no_zoom px"
 echo "Height : $height_no_zoom px"
 echo "If you have an error here, it may has a problem to detect the width."
