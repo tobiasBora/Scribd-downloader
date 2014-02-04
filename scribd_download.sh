@@ -15,6 +15,12 @@
 if [ -z "$1" ]
 then
     echo "scribd_download.sh <url>"
+    echo "or if you want to change the number of pages :"
+    echo "scribd_download.sh <url> <number of pages>"
+    echo "or if you want to specify the width/height manually :"
+    echo "scribd_download.sh <url> <number of pages> <width> <height>"
+    echo "If you don't want to specify the number of pages :"
+    echo "scribd_download.sh <url> 0 <width> <height>"
     exit 1
 fi
 url="$1"
@@ -36,11 +42,18 @@ page.open(url, function () {
 });" > phantom_nb_pages.js
 
 # Update of Scribd
-nb_pages=`phantomjs --load-images=no phantom_nb_pages.js > page.html && cat page.html | egrep -o 'of <span class="total_value">[0-9]+</span>' | cut -d\> -f2 | cut -d\< -f1`
-if [ -z "$nb_pages" ]
+phantomjs --load-images=no phantom_nb_pages.js > page.html
+nb_pages="$(cat page.html | grep 'document.getElementById(\"outer_page' | wc -l)"
+
+if [ -z "$2" ] || [ "$2" = "0" ]
 then
-    echo "I can't find the number of pages... Please, how many pages are there in the file ?"
-    read nb_pages
+    if [ -z "$nb_pages" ]
+    then
+	echo "I can't find the number of pages... Please, how many pages are there in the file ?"
+	read nb_pages
+    fi
+else
+    nb_pages="$2"
 fi
 echo "$nb_pages"
 
@@ -89,6 +102,8 @@ echo -n "-"
 remove_node '<div.*between_page_ads_1' "page.html"
 echo -n "-"
 remove_node 'id="leaderboard_ad_main">' "page.html"
+echo -n "-"
+remove_node 'class="page_missing_explanation' "page.html"
 
 # The Scribt skeleton changes often, the following things are useless now.
 # echo -n "-"
@@ -126,11 +141,31 @@ echo -e "\nDone"
 # We download the page with images
 echo "Downloading page..."
 
-#### The page size is founded automatiquely
-width_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 1')"
-height_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 2')"
-space_no_zoom=100
+# Automatic detection
+if [ -z "$4" ]
+then
+    #### The page size is founded automatiquely
+    # New way : with this way it should be possible to
+    # choose the size of each page
+    width_no_zoom="$(cat page.html  | grep -o '\"origWidth\": [0-9]*' | head -n 1 | awk -F ' ' '{print $2}')"
+    height_no_zoom="$(cat page.html  | grep -o '\"origHeight\": [0-9]*' | head -n 1 | awk -F ' ' '{print $2}')"
 
+    # If it doesn't work
+    if [ -z "$width_no_zoom" ]
+    then
+	echo "The first detection didn't work..."
+	width_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 1')"
+	height_no_zoom="$(cat page.html | grep 'id=\"outer_page_1' | egrep -o '[0-9]+px' | egrep -o '[0-9]+' | awk 'NR == 2')"
+    else
+	echo "Detection successfull !"
+	# If it works we modify the Javascript to have the good width
+	sed -i "s/var defaultViewWidth .*;/var defaultViewWidth = defaultViewWidth || $width_no_zoom;/g" page.html
+    fi
+else
+    width_no_zoom="$3"
+    height_no_zoom="$4"
+fi
+space_no_zoom=100
 echo "Width : $width_no_zoom px"
 echo "Height : $height_no_zoom px"
 echo "If you have an error here, it may has a problem to detect the width."
@@ -178,7 +213,7 @@ echo "Done"
 echo "The outputfile is ${page_name}.pdf"
 
 cd ..
-rm -rf .tmp
+# rm -rf .tmp
 
 
 
