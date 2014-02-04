@@ -12,6 +12,14 @@
 # Bugs: Letters are missing in this page :
 # url="http://fr.scribd.com/doc/48491291/partition"
 
+exec_phantomjs="phantomjs"
+exec_convert="convert"
+
+# If phantomjs is in the current directory remove the # of the following line
+#exec_phantomjs="./phantomjs"
+# If convert is in the current directory remove the # of the following line
+#exec_convert="./convert"
+
 if [ -z "$1" ]
 then
     echo "scribd_download.sh <url>"
@@ -42,7 +50,7 @@ page.open(url, function () {
 });" > phantom_nb_pages.js
 
 # Update of Scribd
-phantomjs --load-images=no phantom_nb_pages.js > page.html
+$exec_phantomjs --load-images=no phantom_nb_pages.js > page.html
 nb_pages="$(cat page.html | grep 'document.getElementById(\"outer_page' | wc -l)"
 
 if [ -z "$2" ] || [ "$2" = "0" ]
@@ -201,7 +209,7 @@ page.open(url, function () {
 });
 " > phantom_render.js
 
-phantomjs phantom_render.js
+$exec_phantomjs phantom_render.js
 
 echo "Done"
 
@@ -214,11 +222,11 @@ do
     # We add zeros to fill the page number in file name
     printf -v page_filename "%05d.png" $i
     # We select the good page and save it in a new file
-    convert out.png -gravity NorthWest -crop ${width}x${height}+0+$(( $i*($height + $space) )) $page_filename
+    $exec_convert out.png -gravity NorthWest -crop ${width}x${height}+0+$(( $i*($height + $space) )) $page_filename
 done
 
 # Create the pdf file
-convert 0*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
+$exec_convert 0*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
 
 echo "Done"
 echo "The outputfile is ${page_name}.pdf"
