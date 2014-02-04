@@ -2,8 +2,16 @@
 
 A little shell script to download a pdf file from a scribd document. This script isn't perfect, but it's enough for me.
 
-To use it, just run :
+To use it, make sure you have installed phantomjs and ImageMagick with 
+: sudo apt-get install phantomjs imagemagick
+
+After, just run :
 : $ ./scribd_download.sh <your url>
+
+If you have any problem and you want to try more options, run
+: $ ./scribd_download.sh
+and you'll get a list of all options.
+
 
 Example :
 : $ ./scribd_download.sh http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
