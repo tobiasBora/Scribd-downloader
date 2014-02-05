@@ -7,10 +7,9 @@
 # Working examples :
 # http://fr.scribd.com/doc/16920981/Secondhand-Serenade-Your-Call-piano"
 # http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
-
-
-# Bugs: Letters are missing in this page :
-# url="http://fr.scribd.com/doc/48491291/partition"
+# Example of forbidden file at the beginning that this script can
+# find and convert :
+# http://fr.scribd.com/doc/48491291/partition
 
 exec_phantomjs="phantomjs"
 exec_convert="convert"
@@ -40,6 +39,8 @@ cd .tmp
 
 # Get the number of pages
 echo "Getting informations..."
+echo "(It can be quite long, and don't worry if"
+echo "you see some errors during the conversion)"
 echo -n "  Number of pages... "
 
 echo "var page = require('webpage').create();
@@ -122,6 +123,14 @@ remove_node '<div class="buy_doc_bar' "page.html"
 
 sed -i 's/<div class="outer_page/<div style="margin: 0px;" class="outer_page/g' page.html
 
+# Remove shadow on forbidden pages
+echo -n "-"
+remove_node '<div class="shadow_overlay">' "page.html"
+echo -n "-"
+remove_node 'grab_blur_promo_here' "page.html"
+echo -n "-"
+remove_node 'missing_page_buy_button' "page.html"
+
 
 # The Scribt skeleton changes often, the following things are useless now.
 # echo -n "-"
@@ -187,7 +196,7 @@ fi
 space_no_zoom=0
 echo "Width : $width_no_zoom px"
 echo "Height : $height_no_zoom px"
-echo "If you have an error here, it may has a problem to detect the width."
+echo "If you have an error here, make sure phantomjs is installed."
 
 width=$(($width_no_zoom * $zoom_precision))
 height=$(($height_no_zoom * $zoom_precision))
@@ -232,7 +241,7 @@ echo "Done"
 echo "The outputfile is ${page_name}.pdf"
 
 cd ..
-# rm -rf .tmp
+rm -rf .tmp
 
 
 
