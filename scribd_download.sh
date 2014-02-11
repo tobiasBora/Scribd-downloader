@@ -11,13 +11,9 @@
 # find and convert :
 # http://fr.scribd.com/doc/48491291/partition
 
-exec_phantomjs="phantomjs"
-exec_convert="convert"
-
-# If phantomjs is in the current directory remove the # of the following line
-#exec_phantomjs="./phantomjs"
-# If convert is in the current directory remove the # of the following line
-#exec_convert="./convert"
+# If you don't want install phantomjs/imagemagick,
+# you can just put phantomjs and convert exec files
+# is in the current directory
 
 if [ -z "$1" ]
 then
@@ -30,6 +26,49 @@ then
     echo "scribd_download.sh <url> 0 <width> <height>"
     exit 1
 fi
+
+# If convert isn't installed
+if [ -z "$(which convert)" ]
+then
+    file="$(dirname $(readlink -f .))/convert"
+    # Even in the current dir
+    if [ ! -f "$file" ]
+    then
+	echo "You must install 'convert' from the package imagemagick."
+	echo "On ubuntu run :"
+	echo "sudo apt-get install imagemagick"
+	exit 1
+    else
+	echo "The convert command has been found in the current dir."
+	echo "I'll use it."
+	exec_convert="$file"
+    fi
+else
+    exec_convert="convert"
+fi
+
+# If phantomjs isn't installed
+if [ -z "$(which phantomjs)" ]
+then
+    file="$(dirname $(readlink -f .))/phantomjs"
+    # Even in the current dir
+    if [ ! -f "$file" ]
+    then
+	echo "You must install phantomjs."
+	echo "On ubuntu run :"
+	echo "sudo apt-get install phantomjs"
+	exit 1
+    else
+	echo "The phantomjs command has been found in the current dir."
+	echo "I'll use it."
+	exec_phantomjs="$file"
+    fi
+else
+    exec_phantomjs="phantomjs"
+fi
+
+
+
 url="$1"
 zoom_precision=2
 
