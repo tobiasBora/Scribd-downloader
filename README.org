@@ -1,6 +1,6 @@
 * Scribd-downloader
 
-A little shell script to download a pdf file from a scribd document. This script isn't perfect, but it's enough for me.
+A shell script to download a pdf file from a scribd document. This script can download too big files (such as 150 pages), forbidden pages (marked with "You are not reading a free preview"... If you have a problem with a file just tell me at tobias.bora -@- gmail -.- com.
 
 To use it, make sure you have installed phantomjs and ImageMagick with 
 : sudo apt-get install phantomjs imagemagick
@@ -8,7 +8,7 @@ To use it, make sure you have installed phantomjs and ImageMagick with
 After, just run :
 : $ ./scribd_download.sh <your url>
 
-If you have any problem and you want to try more options, run
+If you have any problem and you want to try more options, run with no option
 : $ ./scribd_download.sh
 and you'll get a list of all options.
 

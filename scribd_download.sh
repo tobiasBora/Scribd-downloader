@@ -197,36 +197,6 @@ remove_node 'grab_blur_promo_here' "page.html"
 echo -n "-"
 remove_node 'missing_page_buy_button' "page.html"
 
-# The Scribt skeleton changes often, the following things are useless now.
-# echo -n "-"
-# remove_node '<div class="global_header"' "page.html"
-# echo -n "-"
-# remove_node '<div id="font_preload_bed"' "page.html"
-# echo -n "-"
-# remove_node '<div class="global_footer"' "page.html"
-# echo -n "-"
-# remove_node '<div id="lightboxes"' "page.html"
-# echo -n "-"
-# remove_node '<div id="fb-root"' "page.html"
-# echo -n "-"
-# remove_node '<div id="overlay"' "page.html"
-# echo -n "-"
-# remove_node '<div class="below_document"' "page.html"
-# echo -n "-"
-# remove_node 'id="top_language_bar">' "page.html"
-# echo -n "-"
-# remove_node '<div id="upgrade_message"' "page.html"
-# echo -n "-"
-# remove_node 'id="flashes_placeholder"' "page.html"
-# echo -n "-"
-# remove_node 'class="sticky_bar"' "page.html"
-# echo -n "-"
-# remove_node 'id="sidebar"' "page.html"
-# echo -n "-"
-# remove_node 'id="view=mode_popup"' "page.html"
-# echo -n "-"
-# remove_node '<div class="b_' "page.html"
-
 echo -e "\nDone"
 
 
@@ -267,22 +237,6 @@ width=$(($width_no_zoom * $zoom_precision))
 height=$(($height_no_zoom * $zoom_precision))
 space=$(($space_no_zoom * $zoom_precision))
 
-# echo "var page = require('webpage').create();
-# url = 'page.html';
-# nb_pages = $nb_pages;
-# zoom = $zoom_precision;
-# width = $width
-# height = (768+($height+$space)*nb_pages);
-# page.viewportSize = { width: width, height: height };
-# page.zoomFactor = zoom;
-
-# page.open(url, function () {
-#     page.render('out.png');
-#     phantom.exit();
-    
-# });
-# " > phantom_render.js
-
 # We treat each pages 10 by 10 because phantomjs can't manage to deal
 # with big documents (something like 20 pages)
 
@@ -306,7 +260,7 @@ do
 	leaving_pages="$(($leaving_pages - $max_treat))"
     fi
 
-    echo "Treating $nb_pages_to_treat ($leaving_pages leaving pages after that)"
+    echo "Treating $nb_pages_to_treat ($leaving_pages leaving pages after that, $current_page already downloaded)"
     cp page_svg.html page.html
     keep_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
     
@@ -331,7 +285,7 @@ page.open(address, function (status) {
     }
 });" > phantom_render.js
     
-    $exec_phantomjs phantom_render.js
+    $exec_phantomjs phantom_render.js >/dev/null
     
     echo "Done"
     
@@ -363,50 +317,4 @@ echo "Done"
 echo "The outputfile is ${page_name}.pdf"
 
 cd ..
-# rm -rf .tmp
-
-
-
-###### Bin #####
-# This part must be improve because it is very long... DONE !
-# function remove_node {
-#      # $1 is the node regexp string
-#      # $2 is the file
-#     node_regex=$1
-#     filename=$2
-#     state=0
-#     nb_line=1
-#     while read line
-#     do
-#  	if [ $state = 0 ]
-#  	then
-#  	    # On n'a encore rien trouvé
-#  	    if [ "`echo \"$line\" | grep -o -P \"$node_regex\"`" != "" ]
-#  	    then
-#  		sed -i "${nb_line}d" $filename
-#  		nb_line=$(( $nb_line - 1 ))
-#  		state=1
-#  		i=1
-#  	    fi
-#  	elif [ $state = 1 ]
-#  	then
-#  	    # On est dans la partie à supprimer
-#  	    sed -i "${nb_line}d" "$filename"
-#  	    # On évite de sauter des lignes
-#  	    nb_line=$(( $nb_line - 1 ))	    
-#  	    if [ "`echo \"$line\" | grep -o '</div>'`" != "" ]
-#  	    then
-#  		i=$(( $i - 1 ))
-#  	    elif [ "`echo \"$line\" | grep -o '<div'`" != "" ]
-#  	    then
-#  		i=$(( $i + 1 ))
-#  	    fi
-
-#  	    if [ $i == 0 ]
-#  	    then
-#  		state=0
-#  	    fi
-#  	fi
-#  	nb_line=$(( $nb_line + 1 ))
-#     done < $filename
-# }
+rm -rf .tmp
