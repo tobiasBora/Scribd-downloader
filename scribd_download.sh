@@ -127,13 +127,25 @@ function remove_node {
     
 }
 
+function remove_n_node {
+    # $1 is the node regexp string
+    # $2 is the file
+    node_regex=$1
+    filename=$2
+    n=$3
+    commande="BEGIN {l=${n}} {if( l>0 && /${node_regex}/ ){i=1;l--}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
+    awk "$commande" "$filename" > tmp
+    mv tmp "$filename"
+    
+}
+
 function remove_errors {
     awk '/</{i++}i' "$1" > tmp
     mv tmp "$1"
 }
 
 # We remove the margin on the left of the main block
-sed -i -e 's/id="doc_container"/id="doc_container" style="margin-left : 0px;"/g' page.html
+sed -i -e 's/id="doc_container"/id="doc_container" style="min-width:0px;min-height:0px;width:0;height:0;margin-left : 0px;"/g' page.html
 
 # We remove all html elements which are useless (menus...)
 echo -n "-"
@@ -241,46 +253,97 @@ width=$(($width_no_zoom * $zoom_precision))
 height=$(($height_no_zoom * $zoom_precision))
 space=$(($space_no_zoom * $zoom_precision))
 
-echo "var page = require('webpage').create();
-url = 'page.html';
-nb_pages = $nb_pages;
+# echo "var page = require('webpage').create();
+# url = 'page.html';
+# nb_pages = $nb_pages;
+# zoom = $zoom_precision;
+# width = $width
+# height = (768+($height+$space)*nb_pages);
+# page.viewportSize = { width: width, height: height };
+# page.zoomFactor = zoom;
+
+# page.open(url, function () {
+#     page.render('out.png');
+#     phantom.exit();
+    
+# });
+# " > phantom_render.js
+
+# We treat each pages 10 by 10 because phantomjs can't manage to deal
+# with big documents (something like 20 pages)
+
+current_page=0
+leaving_pages="$nb_pages"
+max_treat=10
+
+# We treat pages until all pages are treated
+while [ "$leaving_pages" -gt "0" ]
+do
+    if [ "$leaving_pages" -lt "$max_treat" ]
+    then
+	nb_pages_to_treat="$leaving_pages"
+	leaving_pages=0
+    else
+	nb_pages_to_treat="$max_treat"
+	leaving_pages="$(($leaving_pages - $max_treat))"
+    fi
+
+    echo "Treating $nb_pages_to_treat ($leaving_pages leaving pages after that)"
+    
+    echo "var page = require('webpage').create();
+output='out.png';
+address = 'page.html';
+nb_pages = $nb_pages_to_treat;
 zoom = $zoom_precision;
 width = $width
 height = (768+($height+$space)*nb_pages);
 page.viewportSize = { width: width, height: height };
 page.zoomFactor = zoom;
-
-page.open(url, function () {
-    page.render('out.png');
-    phantom.exit();
+page.open(address, function (status) {
+    if (status !== 'success') {
+        console.log('Unable to load the address!');
+    } else {
+        page.clipRect = { top: 0, left: 0, width: width, height: height };
+        window.setTimeout(function () {
+            page.render(output);
+            phantom.exit();
+        }, 200);
+    }
+});" > phantom_render.js
     
-});
-" > phantom_render.js
+    $exec_phantomjs phantom_render.js
+    
+    echo "Done"
+    
+     ### Treatment of the picture
+    # Separate pages
+    echo -n "Treatment... "
+    
+    for i in `seq 0 $(( $nb_pages_to_treat - 1))`
+    do
+        # We add zeros to fill the page number in file name
+	printf -v page_filename "%05d.png" "$current_page"
+        # We select the good page and save it in a new file
+	$exec_convert out.png -gravity NorthWest -crop ${width}x${height}+0+$(( $i*($height + $space) )) $page_filename
+	current_page="$(($current_page + 1))"
+    done
 
-$exec_phantomjs phantom_render.js
-
-echo "Done"
-
-### Treatment of the picture
-# Separate pages
-echo -n "Treatment... "
-
-for i in `seq 0 $(( $nb_pages - 1))`
-do
-    # We add zeros to fill the page number in file name
-    printf -v page_filename "%05d.png" $i
-    # We select the good page and save it in a new file
-    $exec_convert out.png -gravity NorthWest -crop ${width}x${height}+0+$(( $i*($height + $space) )) $page_filename
+    ### Remove useless pages in page.html
+    if [ "$leaving_pages" -ne "0" ]
+    then
+	remove_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
+    fi
 done
 
 # Create the pdf file
+echo "All pages has been downloaded, I will now create the pdf file"
 $exec_convert 0*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
 
 echo "Done"
 echo "The outputfile is ${page_name}.pdf"
 
 cd ..
-rm -rf .tmp
+# rm -rf .tmp
 
 
 
