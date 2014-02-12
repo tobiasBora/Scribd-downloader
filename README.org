@@ -12,6 +12,7 @@ If you have any problem and you want to try more options, run with no option
 : $ ./scribd_download.sh
 and you'll get a list of all options.
 
+For time benchmark, for big files you can count around 120 pages for 5mn of execution.
 
 Example :
 : $ ./scribd_download.sh http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles

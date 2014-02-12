@@ -88,7 +88,11 @@ url = \"$url\"
 page.open(url, function () {
     console.log(page.content);
     phantom.exit();
-});" > phantom_nb_pages.js
+});
+// Avoid error messages
+page.onError = function(msg, trace) {
+};
+" > phantom_nb_pages.js
 
 # Update of Scribd
 $exec_phantomjs --load-images=no phantom_nb_pages.js > page.html
@@ -260,7 +264,7 @@ do
 	leaving_pages="$(($leaving_pages - $max_treat))"
     fi
 
-    echo "Treating $nb_pages_to_treat ($leaving_pages leaving pages after that, $current_page already downloaded)"
+    echo "Treating $nb_pages_to_treat pages ($leaving_pages leaving pages after that, $current_page already downloaded)"
     cp page_svg.html page.html
     keep_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
     
@@ -283,15 +287,19 @@ page.open(address, function (status) {
             phantom.exit();
         }, 200);
     }
-});" > phantom_render.js
+});
+// Avoid error messages
+page.onError = function(msg, trace) {
+};
+" > phantom_render.js
     
-    $exec_phantomjs phantom_render.js >/dev/null
+    $exec_phantomjs phantom_render.js
     
     echo "Done"
     
      ### Treatment of the picture
     # Separate pages
-    echo -n "Treatment... "
+    echo "Treatment... "
     
     for i in `seq 0 $(( $nb_pages_to_treat - 1))`
     do
