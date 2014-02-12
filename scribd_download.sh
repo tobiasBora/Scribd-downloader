@@ -1,4 +1,5 @@
 #!/bin/bash -e
+# This script created by Tobias Bora is under GPLv3 Licence
 
 # This script download and convert a document from scribd.com into pdf
 # ImageMagick and Phantomjs must be installed
@@ -121,7 +122,7 @@ function remove_node {
     # $2 is the file
     node_regex=$1
     filename=$2
-    commande="{if(/${node_regex}/){i=1}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
+    commande="{if(!i && /${node_regex}/){i=1}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
     awk "$commande" "$filename" > tmp
     mv tmp "$filename"
     
@@ -133,7 +134,19 @@ function remove_n_node {
     node_regex=$1
     filename=$2
     n=$3
-    commande="BEGIN {l=${n}} {if( l>0 && /${node_regex}/ ){i=1;l--}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
+    commande="BEGIN {l=${n}} {if( !i && l>0 && /${node_regex}/ ){i=1;l--}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}"
+    awk "$commande" "$filename" > tmp
+    mv tmp "$filename"
+    
+}
+
+function keep_n_node {
+    # $1 is the node regexp string
+    # $2 is the file
+    node_regex=$1
+    filename=$2
+    n=$3
+    commande="BEGIN {l=${n}} {if(l > 0 && /${node_regex}/ ){l--;print \$0}else{if(!i && /${node_regex}/ ){i=1;l--}else{if(i){if(/<div/){i++} if(/<\/div>/){i--}}else{if(!i){print \$0}} }}}"
     awk "$commande" "$filename" > tmp
     mv tmp "$filename"
     
@@ -144,8 +157,10 @@ function remove_errors {
     mv tmp "$1"
 }
 
+
 # We remove the margin on the left of the main block
-sed -i -e 's/id="doc_container"/id="doc_container" style="min-width:0px;min-height:0px;width:0;height:0;margin-left : 0px;"/g' page.html
+sed -i -e 's/id="doc_container"/id="doc_container" style="min-width:0px;margin-left : 0px;"/g' page.html
+
 
 # We remove all html elements which are useless (menus...)
 echo -n "-"
@@ -164,7 +179,7 @@ echo -n "-"
 remove_node 'id="leaderboard_ad_main">' "page.html"
 echo -n "-"
 # Remove the space between pages
-remove_node 'class="page_missing_explanation' "page.html"
+remove_node 'class="page_missing_explanation ' "page.html"
 echo -n "-"
 remove_node '<div id="between_page_ads' "page.html"
 echo -n "-"
@@ -181,7 +196,6 @@ echo -n "-"
 remove_node 'grab_blur_promo_here' "page.html"
 echo -n "-"
 remove_node 'missing_page_buy_button' "page.html"
-
 
 # The Scribt skeleton changes often, the following things are useless now.
 # echo -n "-"
@@ -276,6 +290,10 @@ current_page=0
 leaving_pages="$nb_pages"
 max_treat=10
 
+# We make a copy in order to remove useless pages
+# page_svg.html contains all pages which hasn't been recorded
+cp page.html page_svg.html
+
 # We treat pages until all pages are treated
 while [ "$leaving_pages" -gt "0" ]
 do
@@ -289,6 +307,8 @@ do
     fi
 
     echo "Treating $nb_pages_to_treat ($leaving_pages leaving pages after that)"
+    cp page_svg.html page.html
+    keep_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
     
     echo "var page = require('webpage').create();
 output='out.png';
@@ -331,12 +351,12 @@ page.open(address, function (status) {
     ### Remove useless pages in page.html
     if [ "$leaving_pages" -ne "0" ]
     then
-	remove_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
+	remove_n_node 'id="outer_page_' "page_svg.html" "$nb_pages_to_treat"
     fi
 done
 
 # Create the pdf file
-echo "All pages has been downloaded, I will now create the pdf file"
+echo "All pages have been downloaded, I will now create the pdf file"
 $exec_convert 0*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
 
 echo "Done"
