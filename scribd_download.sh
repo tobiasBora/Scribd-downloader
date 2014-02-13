@@ -74,8 +74,8 @@ else
     exec_phantomjs="phantomjs"
 fi
 
-# If phantomjs isn't installed
-if [ -z "$(which pdftk)" ]
+# If pdftk isn't installed
+if [ ! "$pdf_convert_mode" = "convert" ] && [ -z "$(which pdftk)" ]
 then
     file="$(dirname $(readlink -f .))/pdftk"
     # Even in the current dir
@@ -346,7 +346,6 @@ done
 
 # Create the pdf file
 echo "All pages have been downloaded, I will now create the pdf file"
-pdf_convert_mode="pdftk"
 
 # This function is used in the pdftk mode
 # It combines each pdf two by two (avoid memory error)
@@ -383,7 +382,6 @@ function combine_pdf {
     eval "$3=(\"\${out_pdf[@]}\")"
 }
 
-
 if [ "$pdf_convert_mode" = "convert" ]
 then
     echo "Using convert (can not work with low memory)"
@@ -404,11 +402,11 @@ else
     files=()
     i=0
     # List all files
-    while read line
+    for line in 0_*.pdf
     do
 	files[ $i ]="$line"
 	i="$(( $i + 1 ))"
-    done < <(ls -1 0_*.pdf)
+    done
 
     echo "Putting files together..."
     # Combine
@@ -422,6 +420,7 @@ else
     
     eval "cp ${files[0]} ../${page_name}.pdf"
 fi
+
 cd ..
 
 echo "Done"
