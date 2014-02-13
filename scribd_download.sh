@@ -426,5 +426,6 @@ cd ..
 
 echo "Done"
 echo "The outputfile is $(pwd)/${page_name}.pdf"
+echo "Name : ${page_name}.pdf"
 
-# rm -rf .tmp
+rm -rf .tmp
