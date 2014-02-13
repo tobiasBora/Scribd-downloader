@@ -2,7 +2,7 @@
 # This script created by Tobias Bora is under GPLv3 Licence
 
 # This script download and convert a document from scribd.com into pdf
-# ImageMagick and Phantomjs must be installed
+# ImageMagick, Phantomjs and pdftk must be installed
 # Doc : https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#wiki-webpage-viewportSize
 
 # Working examples :
@@ -15,6 +15,12 @@
 # If you don't want install phantomjs/imagemagick,
 # you can just put phantomjs and convert exec files
 # is in the current directory
+
+pdf_convert_mode="pdftk"
+# Uncomment this if you prefer to use convert
+# than pdftk for convertion (you can have memory issues)
+# pdf_convert_mode="convert"
+
 
 if [ -z "$1" ]
 then
@@ -66,6 +72,28 @@ then
     fi
 else
     exec_phantomjs="phantomjs"
+fi
+
+# If phantomjs isn't installed
+if [ -z "$(which pdftk)" ]
+then
+    file="$(dirname $(readlink -f .))/pdftk"
+    # Even in the current dir
+    if [ ! -f "$file" ]
+    then
+	echo "You must install pdftk."
+	echo "On ubuntu run :"
+	echo "sudo apt-get install pdftk"
+	echo ""
+	echo "(Or modify the script conf if you don't want it)"
+	exit 1
+    else
+	echo "The pdftk command has been found in the current dir."
+	echo "I'll use it."
+	exec_pdftk="$file"
+    fi
+else
+    exec_pdftk="pdftk"
 fi
 
 
@@ -235,7 +263,6 @@ fi
 space_no_zoom=0
 echo "Width : $width_no_zoom px"
 echo "Height : $height_no_zoom px"
-echo "If you have an error here, make sure phantomjs is installed."
 
 width=$(($width_no_zoom * $zoom_precision))
 height=$(($height_no_zoom * $zoom_precision))
@@ -264,7 +291,7 @@ do
 	leaving_pages="$(($leaving_pages - $max_treat))"
     fi
 
-    echo "Treating $nb_pages_to_treat pages ($leaving_pages leaving pages after that, $current_page already downloaded)"
+    echo "Downloading $nb_pages_to_treat pages ($leaving_pages leaving pages after that, $current_page already downloaded)"
     cp page_svg.html page.html
     keep_n_node 'id="outer_page_' "page.html" "$nb_pages_to_treat"
     
@@ -304,7 +331,7 @@ page.onError = function(msg, trace) {
     for i in `seq 0 $(( $nb_pages_to_treat - 1))`
     do
         # We add zeros to fill the page number in file name
-	printf -v page_filename "%05d.png" "$current_page"
+	printf -v page_filename "0_%05d.png" "$current_page"
         # We select the good page and save it in a new file
 	$exec_convert out.png -gravity NorthWest -crop ${width}x${height}+0+$(( $i*($height + $space) )) $page_filename
 	current_page="$(($current_page + 1))"
@@ -319,10 +346,85 @@ done
 
 # Create the pdf file
 echo "All pages have been downloaded, I will now create the pdf file"
-$exec_convert 0*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
+pdf_convert_mode="pdftk"
+
+# This function is used in the pdftk mode
+# It combines each pdf two by two (avoid memory error)
+# This function modify the input pdf array
+function combine_pdf {
+    # $1 = pdf array
+    # $2 = base new name
+    # $3 = output variable name
+    declare -a pdf=("${!1}")
+    base_new_name="$2"
+
+    # Empty array
+    out_pdf=()
+    i=0
+    # For each file and it's neightbour...
+    while [ "$i" -lt "$(( ${#pdf[*]} - 1))" ]
+    do
+	output_name="${base_new_name}_${i}.pdf"
+	# echo "${pdf[$i]} & ${pdf[ $(( $i + 1 )) ]} => $output_name"
+	# Combine two by two
+	$exec_pdftk "${pdf[$i]}" "${pdf[ $(( $i + 1 )) ]}" cat output "$output_name"
+	# Add in the output array
+	out_pdf["$i"]="$output_name"
+	i="$(( $i + 2 ))"
+	echo -n "-"
+    done
+    # If one element hasn't been treated we add it in the output
+    if [ "$i" -ne "${#pdf[*]}" ]
+    then
+	out_pdf["$i"]="${pdf[ $(( ${#pdf[*]} - 1 )) ]}"
+    fi
+
+    # Copy
+    eval "$3=(\"\${out_pdf[@]}\")"
+}
+
+
+if [ "$pdf_convert_mode" = "convert" ]
+then
+    echo "Using convert (can not work with low memory)"
+    $exec_convert 0_*.png -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 ../${page_name}.pdf
+else
+    echo "Using pdftk (maybe longer but no memory error)"
+    echo "You can change the configuration if you prefer convert"
+    
+    # Convertion of each picture one by one
+    for picture in 0_*.png
+    do
+	$exec_convert "$picture" -quality 100 -compress jpeg -gravity center -resize 1240x1753 -extent 1240x1753 -gravity SouthWest -page a4 "$picture.pdf"
+	echo -n "-"   
+    done
+    echo ""
+
+    echo "Listing files..."
+    files=()
+    i=0
+    # List all files
+    while read line
+    do
+	files[ $i ]="$line"
+	i="$(( $i + 1 ))"
+    done < <(ls -1 0_*.pdf)
+
+    echo "Putting files together..."
+    # Combine
+    j=1
+    while [ "${#files[*]}" -gt "1" ]
+    do
+	combine_pdf files[@] "$j" "files"
+	j="$(( $j + 1 ))"
+	echo "#"
+    done
+    
+    eval "cp ${files[0]} ../${page_name}.pdf"
+fi
+cd ..
 
 echo "Done"
-echo "The outputfile is ${page_name}.pdf"
+echo "The outputfile is $(pwd)/${page_name}.pdf"
 
-cd ..
-rm -rf .tmp
+# rm -rf .tmp
