@@ -37,3 +37,9 @@ Note that you may lose some precision. It will be easier to deal with this case 
 Just open the hidden folder .tmp in the current folder. You can see every pages in png format and check that there is no problem.
 
 #+html: <img src="https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19" />
+** TODO
+- Auto-dectect PhantomJs version and correct zoom precision
+- Deal with document with different page size
+- More flexible command line options (resolution, pages...)
+- Add a graphical interface
+- Port it in a multi-OS language
