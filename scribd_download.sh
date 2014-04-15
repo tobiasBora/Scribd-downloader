@@ -138,7 +138,7 @@ else
 fi
 echo "$nb_pages"
 
-page_name=`cat page.html | egrep -o "<title>.*</title>" | sed -E 's/<title>(.*)<\/title>/\1/' | sed -e 's/ /_/g'`
+page_name=`cat page.html | egrep -o "<title>.*</title>" | sed -E 's/<title>(.*)<\/title>/\1/' | sed -e 's/ /_/g' | tr -cd '[[:alnum:]]._-'`
 echo "  Title... $page_name"
 echo "Done."
 
@@ -418,7 +418,7 @@ else
 	echo "#"
     done
     
-    eval "cp ${files[0]} ../${page_name}.pdf"
+    eval "cp \"${files[0]}\" \"../${page_name}.pdf\""
 fi
 
 cd ..
