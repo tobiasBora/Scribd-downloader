@@ -26,8 +26,8 @@ Example :
 The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
 
 ** FAQ
-*** I can't install a recent version of PhantomJs newer than 1.6
-Please edit the file scribd_dowload.sh and modify the line
+*** I can't install a recent version of PhantomJs newer than 1.6. Can I use an older version ?
+Yes you can. To do that, please edit the file scribd_dowload.sh and modify the line
 : zoom_precision=2
 like this
 : zoom_precision=1
