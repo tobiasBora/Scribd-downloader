@@ -5,6 +5,8 @@ A shell script to download a pdf file from a scribd document. This script can do
 To use it, make sure you have installed phantomjs, pdftk and ImageMagick with 
 : sudo apt-get install phantomjs imagemagick pdftk
 
+You should check that phantomjs version is greater than 1.6 because an important function came. (If it's not possible to install a newer version, see below how to correct that)
+
 After, just run :
 : $ ./scribd_download.sh <your url>
 
@@ -22,5 +24,16 @@ Example :
 : $ ./scribd_download.sh http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
 
 The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
+
+** FAQ
+*** I can't install a recent version of PhantomJs newer than 1.6
+Please edit the file scribd_dowload.sh and modify the line
+: zoom_precision=2
+like this
+: zoom_precision=1
+Note that you may lose some precision. It will be easier to deal with this case in a futur version.
+
+*** Is it possible to see the pages created in real time when the document is long to download ?
+Just open the hidden folder .tmp in the current folder. You can see every pages in png format and check that there is no problem.
 
 #+html: <img src="https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19" />
