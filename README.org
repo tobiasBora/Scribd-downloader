@@ -39,7 +39,8 @@ Just open the hidden folder .tmp in the current folder. You can see every pages 
 #+html: <img src="https://cruel-carlota.gopagoda.com/a53e63746f14f5d533e66b783b66dd19" />
 ** To Do
 - Auto-dectect PhantomJs version and correct zoom precision
-- Deal with document with different page size
+- Deal with documents with different page size
 - More flexible command line options (resolution, pages...)
+- Deal with documents with only one big obfuscated "page"
 - Add a graphical interface
 - Port it in a multi-OS language
