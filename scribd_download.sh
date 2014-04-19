@@ -219,7 +219,7 @@ remove_node '<div class="b_..">' "page.html"
 echo -n "-"
 remove_node '<div class="buy_doc_bar' "page.html"
 
-sed -i 's/<div class="outer_page/<div style="margin: 0px;" class="outer_page/g' page.html
+sed -i -e 's/<div class="outer_page/<div style="margin: 0px;" class="outer_page/g' page.html
 
 # Remove shadow on forbidden pages
 echo -n "-"
@@ -253,7 +253,7 @@ then
     else
 	echo "Detection successfull !"
 	# If it works we modify the Javascript to have the good width
-	sed -i "s/var defaultViewWidth .*;/var defaultViewWidth = defaultViewWidth || $width_no_zoom;/g" page.html
+	sed -i -e "s/var defaultViewWidth .*;/var defaultViewWidth = defaultViewWidth || $width_no_zoom;/g" page.html
     fi
 else
     width_no_zoom="$3"
