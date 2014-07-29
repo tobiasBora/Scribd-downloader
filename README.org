@@ -21,7 +21,7 @@ like this
 
 
 Example :
-: $ ./scribd_download.sh http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
+: $ ./scribd_download.sh http://fr.scribd.com/doc/63942746/chopin-nocturne-n-20-partition
 
 The Scribd structure often changes, so if you have any problem, please contact me at tobias.bora -@- gmail -.- com, or let a message in the "Issues" section.
 

@@ -6,10 +6,7 @@
 # Doc : https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#wiki-webpage-viewportSize
 
 # Working examples :
-# http://fr.scribd.com/doc/16920981/Secondhand-Serenade-Your-Call-piano"
-# http://fr.scribd.com/doc/24816204/Vanessa-Carlton-A-Thousand-Miles
-# Example of forbidden file at the beginning that this script can
-# find and convert :
+# http://fr.scribd.com/doc/63942746/chopin-nocturne-n-20-partition
 # http://fr.scribd.com/doc/48491291/partition
 
 # If you don't want install phantomjs/imagemagick,
@@ -148,6 +145,8 @@ echo "Removing useless parts..."
 # We make a new line for each html element.
 sed -i -e "s/</\\n</g" page.html
 sed -i -e "s/>[^\\n]/>\\n/g" page.html
+# sed -i -e "s/>/>\\n/g" page.html
+# exit 0
 
 function remove_node {
     # $1 is the node regexp string
@@ -427,4 +426,4 @@ echo "Done"
 echo "The outputfile is $(pwd)/${page_name}.pdf"
 echo "Name : ${page_name}.pdf"
 
-rm -rf .tmp
+# rm -rf .tmp
