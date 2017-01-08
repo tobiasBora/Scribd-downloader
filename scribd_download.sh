@@ -191,6 +191,8 @@ function remove_errors {
 
 # We remove the margin on the left of the main block
 sed -i -e 's/id="doc_container"/id="doc_container" style="min-width:0px;margin-left : 0px;"/g' page.html
+sed -i -e 's/class="sidebar_column"/class="sidebar_column" style="display:none;"/g' page.html
+sed -i -e 's/class="document_column"/class="document_column" style="left : 0px;"/g' page.html
 
 
 # We remove all html elements which are useless (menus...)
@@ -200,6 +202,8 @@ echo -n "-"
 remove_node '<div.*id="global_header"' "page.html"
 echo -n "-"
 remove_node '<div class="header_spacer"' "page.html"
+echo -n "-"
+remove_node '<div class="page_blur_promo"' "page.html"
 echo -n "-"
 remove_node '<div.*id="doc_info"' "page.html"
 echo -n "-"
