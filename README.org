@@ -1,5 +1,8 @@
 * Scribd-downloader
 
+/!\ /!\ /!\ IMPORTANT /!\ /!\ /!\
+THIS REPOSITORY IS NOT SUPPORTED ANYMORE (AND DOES NOT WORK ANYMORE). PLEASE TRY MY NEW VERSION HERE [[https://github.com/tobiasBora/scribd-downloader-3]]. IT'S NOT PERFECT I GUESS, BUT WORKS PRETTY NICELY.
+
 A shell script to download a pdf file from a scribd document. This script can download too big files (such as 150 pages), forbidden pages (marked with "You are not reading a free preview")... If you have a problem with a file just tell me at tobias.bora -@- gmail -.- com.
 
 To use it, make sure you have installed phantomjs, pdftk and ImageMagick with 
